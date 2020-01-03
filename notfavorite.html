@@ -1,0 +1,1033 @@
+<html>
+<head>
+	<title>Why Pascal is Not My Favorite Programming Language</title>
+<link rel="made" rev="made" href="mailto:jutta@pobox.com">
+</head>
+<body>
+<h1>Why Pascal is Not My Favorite Programming Language</h1>
+
+Brian W. Kernighan,
+April 2, 1981<br>
+
+AT&amp;T Bell Laboratories,&#160;<tt> </tt>Murray Hill, New Jersey 07974<p>
+
+<h2>Abstract</h2>
+<p>
+        The programming language Pascal has become the dominant language
+     of instruction in computer science education.&#160;<tt> </tt>It has also strongly
+     influenced languages developed subsequently, in particular Ada.
+<p>
+       Pascal was originally intended primarily as a teaching language,
+     but it has been  more and more often recommended as a language for
+     serious programming  as well, for example, for  system programming
+     tasks and even operating systems.
+<p>
+       Pascal,  at  least in  its  standard  form, is  just  plain  not
+     suitable for serious programming.&#160;<tt> </tt>This paper discusses my personal
+     discovery of some of the reasons why.
+<p>
+<h2>1.&#160;<tt> </tt>Genesis</h2>
+    This  paper has its origins in two events - a spate of papers that compare
+  C  and Pascal(<a href="#lit-1" name="source-1">1</a>,  <a href="#lit-2" name="source-2">2</a>,
+  <a href="#lit-3" name="source-3">3</a>, <a href="#lit-4" name="source-4">4</a>)  and a  personal
+  attempt to  rewrite  'Software Tools'(<a href="#lit-5" name="source-5">5</a>) in Pascal.
+<p>
+    Comparing  C and Pascal is rather like comparing a  Learjet to a Piper Cub
+  - one  is meant  for getting  something done  while the other  is meant  for
+  learning  - so  such comparisons  tend to  be somewhat  farfetched.&#160;<tt> </tt>But  the
+  revision of  Software Tools seems a  more relevant comparison.&#160;<tt> </tt>The  programs
+  therein  were originally  written in  Ratfor,  a ``structured''  dialect  of
+  Fortran implemented  by a preprocessor.&#160;<tt> </tt>Since Ratfor  is really Fortran  in
+  disguise, it  has few of  the assets  that Pascal brings  - data types  more
+  suited to  character processing,  data structuring  capabilities for  better
+  defining  the organization  of  one's data,  and  strong typing  to  enforce
+  telling the truth about the data.
+<p>
+    It  turned out to be harder than I had expected to rewrite the programs in
+  Pascal.&#160;<tt> </tt>This  paper is  an attempt  to distill  out of  the experience  some
+  lessons about  Pascal's suitability for  programming (as distinguished  from
+  learning about  programming).&#160;<tt> </tt>It  is not a  comparison of Pascal  with C  or
+  Ratfor.
+<p>
+    The  programs were  first written in that  dialect of Pascal supported  by
+  the  Pascal interpreter  pi  provided by  the  University of  California  at
+  Berkeley.&#160;<tt> </tt>The language  is close  to  the nominal  standard  of Jensen  and
+  Wirth,(<a href="#lit-6" name="source-6">6</a>) with good  diagnostics and careful run-time checking.&#160;<tt> </tt>Since  then,
+  the  programs have  also been  run, unchanged  except for  new libraries  of
+  primitives, on four  other systems: an interpreter from the Free  University
+  of Amsterdam (hereinafter referred to  as VU, for Vrije Universiteit), a VAX
+  version of  the Berkeley system  (a true  compiler), a compiler purveyed  by
+  Whitesmiths, Ltd.,  and UCSD  Pascal on  a Z80.&#160;<tt> </tt>All but the  last of  these
+  Pascal systems are written in C.
+<p>
+    Pascal  is a  much-discussed language.&#160;<tt> </tt>A recent  bibliography(<a href="#lit-7" name="source-7">7</a>) lists  175
+  items under  the heading of  ``discussion, analysis  and debate.'' The  most
+  often  cited  papers   (well  worth  reading)  are  a  strong  critique   by
+  Habermann(<a href="#lit-8" name="source-8">8</a>) and an  equally strong rejoinder by Lecarme and  Desjardins.(<a href="#lit-9" name="source-9">9</a>)
+  The  paper  by  Boom and  DeJong(<a href="#lit-10" name="source-10">10</a>)  is  also  good  reading.&#160;<tt> </tt>Wirth's  own
+  assessment  of Pascal  is found  in [<a href="#lit-11" name="source-11">11</a>].&#160;<tt> </tt>I have  no desire  or ability  to
+  summarize the  literature; this  paper represents  my personal  observations
+  and most of  it necessarily duplicates points  made by others.&#160;<tt> </tt>I have  tried
+  to organize the rest of the material around the issues of
+
+<ul>
+<li><a href="#types-and-scopes">types and scope</a>
+<li><a href="#control-flow">control flow</a>
+<li><a href="#environment">environment</a>
+<li><a href="#cosmetics">cosmetics</a>
+</ul>
+
+  and within each area more or less in decreasing order of significance.
+<p>
+
+    To  state  my  conclusions at  the  outset:  Pascal may  be  an  admirable
+  language  for  teaching beginners  how  to  program; I  have  no  first-hand
+  experience with  that.&#160;<tt> </tt>It was  a considerable  achievement for 1968.&#160;<tt> </tt>It  has
+  certainly influenced the design of  recent languages, of which Ada is likely
+  to  be the  most  important.&#160;<tt> </tt>But  in its  standard  form (both  current  and
+  proposed), Pascal is not adequate  for writing real programs.&#160;<tt> </tt>It is suitable
+  only for small, self-contained programs  that have only trivial interactions
+  with their  environment and  that make  no use  of any  software written  by
+  anyone else.
+
+
+<h2><a name="types-and-scopes">2.</a>&#160;<tt> </tt>Types and Scopes</h2>
+    Pascal  is  (almost) a  strongly  typed language.&#160;<tt> </tt>Roughly speaking,  that
+  means  that  each  object  in  a  program  has  a  well-defined  type  which
+  implicitly defines  the legal values  of and  operations on the object.&#160;<tt> </tt>The
+  language guarantees that it will  prohibit illegal values and operations, by
+  some mixture of compile- and  run-time checking.&#160;<tt> </tt>Of course compilers may not
+  actually  do   all  the  checking   implied  in  the  language   definition.&#160;<tt> </tt>
+  Furthermore, strong typing is not  to be confused with dimensional analysis.&#160;<tt> </tt>
+  If one defines types '<code>apple</code>' and '<code>orange</code>' with
+
+<pre>
+     type
+             apple = integer;
+             orange = integer;
+</pre>
+
+  then any  arbitrary arithmetic  expression involving apples  and oranges  is
+  perfectly legal.<p>
+    Strong  typing shows up in  a variety of ways.&#160;<tt> </tt>For instance, arguments  to
+  functions and procedures  are checked for proper type matching.&#160;<tt> </tt>Gone is  the
+  Fortran  freedom to  pass a  floating point  number into  a subroutine  that
+  expects an integer;  this I deem a  desirable attribute of Pascal, since  it
+  warns of a construction that will certainly cause an error.<p>
+    Integer  variables may  be declared to have  an associated range of  legal
+  values, and the compiler  and run-time support ensure that one does not  put
+  large integers  into variables  that only  hold small ones.&#160;<tt> </tt>This too  seems
+  like a service, although of course run-time checking does exact a penalty.<p>
+    Let us move on to some problems of type and scope.
+
+
+<h2>2.1.&#160;<tt> </tt>The size of an array is part of its type</h2>
+
+    If one declares
+
+<pre>
+     var     arr10 : array [1..10] of integer;
+             arr20 : array [1..20] of integer;
+</pre>
+
+  then arr10 and arr20 are  arrays of 10 and 20 integers respectively.&#160;<tt> </tt>Suppose
+  we want to write a  procedure '<code>sort</code>' to sort an integer array.&#160;<tt> </tt>Because arr10
+  and  arr20 have  different  types, it  is not  possible  to write  a  single
+  procedure that will sort them both.
+<p>
+    The  place where  this affects  Software Tools particularly,  and I  think
+  programs  in general,  is that  it  makes it  difficult indeed  to create  a
+  library  of  routines  for doing  common,  general-purpose  operations  like
+  sorting.
+<p>
+    The  particular data type most  often affected is 'array of char', for  in
+  Pascal  a string  is an  array of  characters.&#160;<tt> </tt>Consider  writing a  function
+  'index(s,c)'  that will  return  the  position in  the  string s  where  the
+  character c  first occurs, or  zero if  it does not.&#160;<tt> </tt>The problem is how  to
+  handle  the string  argument of  '<code>index</code>'.&#160;<tt> </tt>The  calls '<code>index('hello',c)</code>'  and
+  '<code>index('goodbye',c)</code>' cannot both be legal,  since the strings have different
+  lengths.&#160;<tt> </tt>(I pass over the  question of how the end of a constant string like
+  '<code>hello</code>' can be detected, because it can't.)
+    The next try is
+
+<pre>
+     var     temp : array [1..10] of char;
+     temp := 'hello';
+
+     n := index(temp,c);
+</pre>
+
+  but the assignment  to '<code>temp</code>' is illegal  because '<code>hello</code>' and '<code>temp</code>' are  of
+  different lengths.
+<p>
+    The  only  escape from  this infinite  regress is  to define  a family  of
+  routines  with a  member  for each  possible string  size,  or to  make  all
+  strings (including constant strings like '<code>define</code>' ) of the same length.<p>
+    The  latter approach is the lesser of two great  evils.&#160;<tt> </tt>In 'Tools', a type
+  called '<code>string</code>' is declared as
+
+<pre>
+     type    string = array [1..MAXSTR] of char;
+</pre>
+
+  where  the constant  '<code>MAXSTR</code>' is  ``big  enough,'' and  all  strings in  all
+  programs are exactly this size.&#160;<tt> </tt>This is far from ideal, although it made it
+  possible to  get the  programs running.&#160;<tt> </tt>It does  not solve  the problem  of
+  creating true libraries of useful routines.
+<p>
+    There  are some situations  where it is simply  not acceptable to use  the
+  fixed-size array  representation.&#160;<tt> </tt>For example,  the 'Tools' program to  sort
+  lines of text operates by  filling up memory with as many lines as will fit;
+  its running  time depends  strongly on how  full the memory  can be  packed.<p>
+  Thus for '<code>sort</code>', another representation  is used, a long array of characters
+  and a set of indices into this array:
+
+<pre>
+     type    charbuf = array [1..MAXBUF] of char;
+             charindex = array [1..MAXINDEX] of 0..MAXBUF;
+</pre>
+
+  But  the  procedures  and functions  written  to  process  the  fixed-length
+  representation cannot  be used  with the variable-length  form; an  entirely
+  new  set  of  routines  is needed  to  copy  and  compare  strings  in  this
+  representation.&#160;<tt> </tt>In Fortran or C the same functions could be used for both.
+<p>
+    As suggested above, a constant string is written as
+
+<pre>
+     'this is a string'
+</pre>
+
+  and has the type 'packed  array [1..n] of char', where n is the length.&#160;<tt> </tt>Thus
+  each string literal  of different length has  a different type.&#160;<tt> </tt>The only  way
+  to write  a routine that  will print  a message and clean  up is to pad  all
+  messages out to the same maximum length:
+
+<pre>
+     error('short message                    ');
+     error('this is a somewhat longer message');
+</pre>
+
+    Many  commercial  Pascal  compilers  provide  a '<code>string</code>'  data  type  that
+  explicitly avoids the problem;  '<code>string</code>'s are all taken to be the same  type
+  regardless of size.&#160;<tt> </tt>This  solves the problem for this single data type,  but
+  no  other.&#160;<tt> </tt>It  also fails  to solve  secondary problems  like computing  the
+  length  of  a  constant string;  another  built-in  function  is  the  usual
+  solution.
+<p>
+    Pascal  enthusiasts often claim that  to cope with the array-size  problem
+  one merely has to copy  some library routine and fill in the parameters  for
+  the program at hand, but the defense sounds weak at best:(<a href="#lit-12" name="source-12">12</a>)
+<blockquote>
+      ``Since  the bounds  of an  array are  part of  its type  (or, more
+      exactly, of  the type of its indexes), it is impossible to define a
+      procedure  or  function  which  applies  to  arrays with  differing
+      bounds.&#160;<tt> </tt>Although this restriction  may appear to be  a severe one,
+      the experiences  we have had with Pascal tend to show that it tends
+      to  occur very  infrequently.&#160;<tt> </tt>[...] However,  the need to  bind the
+      size  of parametric arrays  is a serious defect  in connection with
+      the use of program libraries.''
+</blockquote>
+
+   This  botch is the biggest  single problem with Pascal.&#160;<tt> </tt>I believe that  if
+  it could be fixed, the  language would be an order of magnitude more usable.&#160;<tt> </tt>
+  The proposed ISO  standard for Pascal(<a href="#lit-13" name="source-13">13</a>) provides such a fix  (``conformant
+  array  schemas''), but  the  acceptance  of this  part  of the  standard  is
+  apparently still in doubt.
+
+
+<h2>2.2.&#160;<tt> </tt>There are no static variables and no initialization</h2>
+    A  '<code>static</code>' variable  (often called  an '<code>own</code>'  variable in  Algol-speaking
+  countries) is  one that  is private to  some routine and  retains its  value
+  from one call  of the routine to  the next.&#160;<tt> </tt>De facto, Fortran variables  are
+  internal static,  except for COMMON;  in C  there is a '<code>static</code>'  declaration
+  that can be  applied to local variables.&#160;<tt> </tt>(Strictly speaking, in Fortran  77
+  one must use SAVE to force the static attribute.)
+<p>
+    Pascal  has no such storage class.&#160;<tt> </tt>This means that if a Pascal function or
+  procedure  intends  to  remember a  value  from  one call  to  another,  the
+  variable used must be external  to the function or procedure.&#160;<tt> </tt>Thus it must be
+  visible to  other procedures,  and its  name must  be unique  in the  larger
+  scope.&#160;<tt> </tt>A  simple example of  the problem is  a random number generator:  the
+  value used to compute the  current output must be saved to compute the  next
+  one, so it  must be stored in  a variable whose lifetime includes all  calls
+  of  the  random  number  generator.&#160;<tt> </tt>In  practice,  this  is  typically  the
+  outermost block of the  program.&#160;<tt> </tt>Thus the declaration of such a variable  is
+  far removed from the place where it is actually used.
+<p>
+    One  example  comes from  the  text formatter  described in  Chapter 7  of
+  'Tools'.&#160;<tt> </tt>The variable '<code>dir</code>' controls  the direction from which excess blanks
+  are  inserted   during  line  justification,   to  obtain  left  and   right
+  alternately.&#160;<tt> </tt>In Pascal, the code looks like this:
+
+<pre>
+     program formatter (...);
+
+     var
+             dir : 0..1;     { direction to add extra spaces }
+             .
+             .
+             .
+     procedure justify (...);
+     begin
+             dir := 1 - dir; { opposite direction from last time }
+             ...
+     end;
+
+             ...
+
+     begin { main routine of formatter }
+             dir := 0;
+             ...
+     end;
+</pre>
+
+  The declaration, initialization and use  of the variable '<code>dir</code>' are scattered
+  all over the  program, literally hundreds of  lines apart.&#160;<tt> </tt>In C or  Fortran,
+  '<code>dir</code>' can be made private to the only routine that needs to know about it:
+
+<pre>
+             ...
+     main()
+     {
+             ...
+     }
+
+             ...
+
+     justify()
+     {
+             static int dir = 0;
+
+             dir = 1 - dir;
+             ...
+     }
+</pre>
+
+    There  are of course many  other examples of the same problem on a  larger
+  scale; functions  for buffered  I/O, storage management,  and symbol  tables
+  all spring to mind.
+<p>
+    There  are  at  least two  related problems.&#160;<tt> </tt>Pascal  provides no  way  to
+  initialize variables  statically (i.e., at  compile time); there is  nothing
+  analogous to Fortran's DATA statement or initializers like
+
+<pre>
+     int dir = 0;
+</pre>
+
+  in C.&#160;<tt> </tt>This means  that a  Pascal program must  contain explicit  assignment
+  statements to initialize variables (like the
+
+<pre>
+     dir := 0;
+</pre>
+
+  above).&#160;<tt> </tt>This  code makes  the program  source text bigger,  and the  program
+  itself bigger at run time.
+<p>
+    Furthermore,  the lack  of initializers  exacerbates the  problem of 
+too-large  scope caused  by the  lack of  a static  storage class.&#160;<tt> </tt>The time  to
+  initialize things  is at the  beginning, so  either the main routine  itself
+  begins with a lot of  initialization code, or it calls one or more  routines
+  to do the initializations.&#160;<tt> </tt>In  either case, variables to be initialized must
+  be visible,  which means in  effect at the  highest level of the  hierarchy.&#160;<tt> </tt>
+  The result is that any variable that is to be initialized has global scope.<p>
+    The  third difficulty is that there is no way  for two routines to share a
+  variable unless  it is  declared at  or above their  least common  ancestor.&#160;<tt> </tt>
+  Fortran COMMON and C's external  static storage class both provide a way for
+  two routines to cooperate privately,  without sharing information with their
+  ancestors.
+<p>
+    The  new standard does not offer static variables, initialization  or
+    non-hierarchical communication.
+
+
+<h2>2.3.&#160;<tt> </tt>Related program components must be kept separate</h2>
+    Since  the original Pascal was  implemented with a one-pass compiler,  the
+  language  believes  strongly  in  declaration  before  use.&#160;<tt> </tt>In  particular,
+  procedures and  functions must be  declared (body  and all) before they  are
+  used.&#160;<tt> </tt>The result is that  a typical Pascal program reads from the bottom  up
+  - all  the procedures  and functions are  displayed before any  of the  code
+  that calls them,  at all levels.&#160;<tt> </tt>This  is essentially opposite to the  order
+  in which the functions are designed and used.
+<p>
+    To  some extent  this can be  mitigated by a  mechanism like the  #include
+  facility of C and Ratfor:  source files can be included where needed without
+  cluttering  up  the  program.&#160;<tt> </tt>#include  is  not  part  of  standard  Pascal,
+  although the UCB, VU and Whitesmiths compilers all provide it.
+<p>
+    There  is also a '<code>forward</code>'  declaration in Pascal that permits  separating
+  the declaration  of the function  or procedure header  from the body; it  is
+  intended  for defining  mutually  recursive  procedures.&#160;<tt> </tt>When  the  body  is
+  declared  later on,  the header  on that  declaration may  contain only  the
+  function name, and must not repeat the information from the first instance.
+<p>
+    A  related  problem is  that  Pascal has  a strict  order in  which it  is
+  willing to accept declarations.&#160;<tt> </tt>Each procedure or function consists of
+<blockquote>
+          <code>label </code> label declarations, if any<br>
+          <code>const </code>constant declarations, if any<br>
+          <code>type </code>type declarations, if any<br>
+          <code>var </code>variable declarations, if any<br>
+<p>
+          procedure and function declarations, if any<br>
+          <code>begin</code><br>
+          body of function or procedure<br>
+          <code>end</code><br>
+</blockquote>
+
+  This means that all  declarations of one kind (types, for instance) must  be
+  grouped  together  for  the convenience  of  the  compiler,  even  when  the
+  programmer would like to keep  together things that are logically related so
+  as to understand the program  better.&#160;<tt> </tt>Since a program has to be presented to
+  the compiler  all at once,  it is rarely  possible to keep the  declaration,
+  initialization and use  of types and variables close together.&#160;<tt> </tt>Even some  of
+  the most dedicated Pascal supporters agree:(<a href="#lit-14" name="source-14">14</a>)
+<blockquote>
+      ``The  inability  to  make  such  groupings  in  structuring  large
+      programs is one of Pascal's most frustrating limitations.''
+</blockquote>
+
+  A file inclusion facility helps only a little here.
+<p>
+    The  new  standard  does  not  relax  the  requirements on  the  order  of
+  declarations.
+
+
+<h2>2.4.&#160;<tt> </tt>There is no separate compilation</h2>
+    The  ``official'' Pascal language  does not provide separate  compilation,
+  and  so each  implementation  decides  on its  own  what  to do.&#160;<tt> </tt>Some  (the
+  Berkeley interpreter,  for instance) disallow  it entirely; this is  closest
+  to the spirit  of the language and  matches the letter exactly.&#160;<tt> </tt>Many  others
+  provide  a  declaration  that specifies  that  the  body of  a  function  is
+  externally defined.&#160;<tt> </tt>In  any case, all such mechanisms are non-standard,  and
+  thus done differently by different systems.
+<p>
+    Theoretically,  there  is no  need  for separate  compilation -  if  one's
+  compiler  is very  fast  (and  if the  source  for  all routines  is  always
+  available  and if  one's compiler  has  a file  inclusion  facility so  that
+  multiple  copies  of  source are  not  needed),  recompiling  everything  is
+  equivalent.&#160;<tt> </tt>In  practice, of  course, compilers  are never  fast enough  and
+  source is often  hidden and file inclusion  is not part of the language,  so
+  changes are time-consuming.
+<p>
+    Some  systems permit separate compilation but do not validate  consistency
+  of  types across  the boundary.&#160;<tt> </tt>This  creates a  giant hole  in the  strong
+  typing.&#160;<tt> </tt>(Most  other languages do  no cross-compilation checking either,  so
+  Pascal is  not inferior in  this respect.)&#160;<tt> </tt>I have seen  at least one  paper
+  (mercifully unpublished) that  on page <i>n</i> castigates  C for failing to  check
+  types across  separate compilation boundaries  while suggesting on page <i>n+1</i>
+  that the  way to  cope with Pascal  is to compile  procedures separately  to
+  avoid type checking.
+<p>
+    The new standard does not offer separate compilation.
+
+
+<h2>2.5.&#160;<tt> </tt>Some miscellaneous problems of type and scope</h2>
+    Most  of the following points  are minor irritations, but I have to  stick
+  them in somewhere.
+<p>
+    It  is not legal to name a non-basic type  as the literal formal parameter
+  of a procedure; the following is not allowed:
+
+<pre>
+     procedure add10 (var a : array [1..10] of integer);
+</pre>
+
+  Rather, one must  invent a type name,  make a type declaration, and  declare
+  the formal parameter to be an instance of that type:
+
+<pre>
+     type    a10 = array [1..10] of integer;
+     ...
+     procedure add10 (var a : a10);
+</pre>
+
+  Naturally the  type declaration is  physically separated from the  procedure
+  that uses it.&#160;<tt> </tt>The discipline of inventing  type names is helpful for  types
+  that are used often, but it is a distraction for things used only once.
+<p>
+    It  is  nice  to have  the  declaration  '<code>var</code>' for  formal  parameters  of
+  functions and  procedures; the procedure clearly  states that it intends  to
+  modify the argument.&#160;<tt> </tt>But the calling program  has no way to declare that  a
+  variable is  to be modified  - the information is  only in one place,  while
+  two places  would be  better.&#160;<tt> </tt>(Half  a loaf  is better than  none, though  -
+  Fortran tells the user nothing about who will do what to variables.)
+<p>
+    It  is also a minor  bother that arrays are  passed by value by default  -
+  the  net effect  is that  every  array parameter  is declared  '<code>var</code>' by  the
+  programmer  more or  less  without thinking.&#160;<tt> </tt>If  the '<code>var</code>'  declaration  is
+  inadvertently omitted, the resulting bug is subtle.
+<p>
+    Pascal's  '<code>set</code>' construct  seems like  a good  idea, providing  notational
+  convenience and some free type checking.&#160;<tt> </tt>For example, a set of tests like
+
+<pre>
+     if (c = blank) or (c = tab) or (c = newline) then ...
+</pre>
+
+  can be written rather more clearly and perhaps more efficiently as
+
+<pre>
+     if c in [blank, tab, newline] then ...
+</pre>
+
+  But in practice, set types  are not useful for much more than this,  because
+  the size of a set  is strongly implementation dependent (probably because it
+  was so  in the  original CDC implementation:  59 bits).&#160;<tt> </tt>For  example, it  is
+  natural  to   attempt  to  write   the  function  'isalphanum(c)'  (``is   c
+  alphanumeric?'') as
+
+<pre>
+     { isalphanum(c) -- true if c is letter or digit }
+     function isalphanum (c : char) : boolean;
+     begin
+             isalphanum := c in ['a'..'z', 'A'..'Z', '0'..'9']
+     end;
+</pre>
+
+  But in  many implementations of  Pascal (including  the original) this  code
+  fails because sets are just  too small.&#160;<tt> </tt>Accordingly, sets are generally best
+  left  unused if  one  intends to  write  portable programs.&#160;<tt> </tt>(This  specific
+  routine also runs an order  of magnitude slower with sets than with a  range
+  test or array reference.)
+
+
+<h2>2.6.&#160;<tt> </tt>There is no escape</h2>
+    There  is no  way to override the  type mechanism when necessary,  nothing
+  analogous  to the  ``cast''  mechanism  in C.&#160;<tt> </tt>This  means  that it  is  not
+  possible  to  write programs  like  storage  allocators or  I/O  systems  in
+  Pascal, because there is no  way to talk about the type of object  that they
+  return, and no way to  force such objects into an arbitrary type for another
+  use.&#160;<tt> </tt>(Strictly  speaking, there is  a large  hole in the type-checking  near
+  variant records,  through which some  otherwise illegal type mismatches  can
+  be obtained.)
+
+
+<h2><a name="control-flow">3.</a>&#160;<tt> </tt>Control Flow</h2>
+    The  control flow  deficiencies of  Pascal are  minor but  numerous -  the
+  death of a thousand cuts, rather than a single blow to a vital spot.<p>
+    There  is no guaranteed order of evaluation of the logical operators '<code>and</code>'
+  and '<code>or</code>' - nothing like  &amp;&amp; and || in C.&#160;<tt> </tt>
+  This failing, which  is shared with most other languages, hurts most
+ often in loop control:
+
+<pre>
+     while (i &lt;= XMAX) and (x[i] &gt; 0) do ...
+</pre>
+
+  is extremely unwise Pascal usage,  since there is no way to ensure that i is
+  tested before x[i] is.
+<p>
+    By  the way, the parentheses in this code are mandatory - the language has
+  only four levels of operator precedence, with relationals at the bottom.
+<p>
+    There  is no '<code>break</code>' statement for exiting loops.&#160;<tt> </tt>This  is consistent with
+  the  one entry-one  exit philosophy  espoused  by proponents  of  structured
+  programming, but it  does lead to nasty circumlocutions or duplicated  code,
+  particularly when coupled  with the inability to control the order in  which
+  logical  expressions   are  evaluated.&#160;<tt> </tt>Consider   this  common   situation,
+  expressed in C or Ratfor:
+
+<pre>
+     while (getnext(...)) {
+             if (something)
+                     break
+             rest of loop
+     }
+</pre>
+
+  With no '<code>break</code>' statement, the first attempt in Pascal is
+
+<pre>
+     done := false;
+     while (not done) and (getnext(...)) do
+             if something then
+                     done := true
+             else begin
+                     rest of loop
+             end
+</pre>
+
+  But this doesn't work, because  there is no way to force the ``not done'' to
+  be evaluated before  the next call of  '<code>getnext</code>'.&#160;<tt> </tt>This leads, after  several
+  false starts, to
+
+<pre>
+     done := false;
+     while not done do begin
+             done := getnext(...);
+             if something then
+                     done := true
+             else if not done then begin
+                     rest of loop
+             end
+     end
+</pre>
+
+  Of course recidivists can use  a '<code>goto</code>' and a label (numeric only and it has
+  to be declared)  to exit a loop.&#160;<tt> </tt>Otherwise, early exits are a pain,  almost
+  always requiring the  invention of a boolean  variable and a certain  amount
+  of cunning.&#160;<tt> </tt>Compare finding the last non-blank in an array in Ratfor:
+
+<pre>
+     for (i = max; i &gt; 0; i = i - 1)
+             if (arr(i) != ' ')
+                     break
+</pre>
+
+  with Pascal:
+
+<pre>
+     done := false;
+     i := max;
+     while (i &gt; 0) and (not done) do
+             if arr[i] = ' ' then
+                     i := i - 1
+             else
+                     done := true;
+</pre>
+
+    The  index of  a '<code>for</code>' loop  is undefined outside the  loop, so it is  not
+  possible to figure out whether  one went to the end or not.&#160;<tt> </tt>The increment of
+  a '<code>for</code>' loop can only be +1 or -1, a minor restriction.
+<p>
+    There  is  no '<code>return</code>'  statement,  again for  one in-one  out reasons.&#160;<tt> </tt>A
+  function value is returned by  setting the value of a pseudo-variable (as in
+  Fortran), then falling off the  end of the function.&#160;<tt> </tt>This sometimes leads to
+  contortions to  make sure  that all  paths actually  get to the  end of  the
+  function with the proper  value.&#160;<tt> </tt>There is also no standard way to  terminate
+  execution except by  reaching the end of the outermost block, although  many
+  implementations provide a '<code>halt</code>' that causes immediate termination.
+<p>
+    The  '<code>case</code>' statement is better  designed than in C, except that there  is
+  no '<code>default</code>' clause  and the behavior is  undefined if the input  expression
+  does not match  any of the cases.&#160;<tt> </tt>This crucial omission renders the  '<code>case</code>'
+  construct almost worthless.&#160;<tt> </tt>In over  6000 lines of Pascal in 'Software Tools
+  in  Pascal', I  used  it  only four  times, although  if  there had  been  a
+  '<code>default</code>', a '<code>case</code>' would have served in at least a dozen places.<p>
+    The new standard offers no relief on any of these points.
+
+
+<h2><a name="environment">4.</a>&#160;<tt> </tt>The Environment</h2>
+    The  Pascal run-time  environment is  relatively sparse, and  there is  no
+  extension   mechanism  except   perhaps   source-level  libraries   in   the
+  ``official'' language.
+<p>
+    Pascal's  built-in  I/O  has  a  deservedly bad  reputation.&#160;<tt> </tt>It  believes
+  strongly  in record-oriented  input and  output.&#160;<tt> </tt>It also  has a  look-ahead
+  convention  that   is  hard   to  implement  properly   in  an   interactive
+  environment.&#160;<tt> </tt>Basically, the problem is  that the I/O system believes that it
+  must read  one record ahead  of the  record that is  being processed.&#160;<tt> </tt>In  an
+  interactive system,  this means that  when a  program is started, its  first
+  operation  is to  try to  read the  terminal for  the first  line of  input,
+  before any of the program itself has been executed.&#160;<tt> </tt>But in the program
+
+<pre>
+     write('Please enter your name: ');
+     read(name);
+     ...
+</pre>
+
+  read-ahead causes  the program to  hang, waiting  for input before  printing
+  the prompt that asks for it.
+<p>
+    It  is possible to escape most  of the evil effects of this I/O design  by
+  very careful implementation,  but not all Pascal  systems do so, and in  any
+  case it is relatively costly.
+<p>
+    The  I/O design reflects the  original operating system upon which  Pascal
+  was  designed;   even  Wirth   acknowledges  that  bias,   though  not   its
+  defects.(<a href="#lit-15" name="source-15">15</a>) It  is assumed  that text  files consist of  records, that  is,
+  lines of  text.&#160;<tt> </tt>When  the last  character of  a line is  read, the  built-in
+  function  '<code>eoln</code>' becomes  true; at  that point,  one must  call '<code>readln</code>'  to
+  initiate  reading a  new line  and reset  '<code>eoln</code>'.&#160;<tt> </tt>Similarly,  when the  last
+  character of  the file  is read, the  built-in '<code>eof</code>' becomes  true.&#160;<tt> </tt>In  both
+  cases,  '<code>eoln</code>' and  '<code>eof</code>' must  be  tested before  each  '<code>read</code>' rather  than
+  after.
+<p>
+    Given  this, considerable pains must be taken to simulate  sensible input.&#160;<tt> </tt>
+  This implementation  of '<code>getc</code>' works  for Berkeley  and VU I/O systems,  but
+  may not necessarily work for anything else:
+
+<pre>
+     { getc -- read character from standard input }
+     function getc (var c : character) : character;
+     var
+             ch : char;
+     begin
+             if eof then
+                     c := ENDFILE
+             else if eoln then begin
+                     readln;
+                     c := NEWLINE
+             end
+
+             else begin
+                     read(ch);
+                     c := ord(ch)
+             end;
+             getc := c
+     end;
+</pre>
+
+  The type '<code>character</code>'  is not the same  as '<code>char</code>', since ENDFILE and  perhaps
+  NEWLINE are not legal values for a '<code>char</code>' variable.
+<p>
+    There  is  no  notion  at  all of  access  to  a file  system  except  for
+  predefined files named  by (in effect) logical unit number in the  '<code>program</code>'
+  statement that begins  each program.&#160;<tt> </tt>This apparently reflects the CDC  batch
+  system in which Pascal was originally developed.&#160;<tt> </tt>A file variable
+
+<pre>
+     var fv : file of type
+</pre>
+
+  is a  very special  kind of  object -  it cannot  be assigned  to, nor  used
+  except by calls to built-in  procedures like '<code>eof</code>', '<code>eoln</code>', '<code>read</code>', '<code>write</code>',
+  '<code>reset</code>' and '<code>rewrite</code>'.&#160;<tt> </tt>('<code>reset</code>' rewinds a file  and makes it ready for  rereading; '<code>rewrite</code>' makes a file ready for writing.)
+<p>
+    Most  implementations of Pascal provide an escape hatch to allow access to
+  files by  name from the  outside environment,  but not conveniently and  not
+  standardly.&#160;<tt> </tt>For  example, many systems permit  a filename argument in  calls
+  to '<code>reset</code>' and '<code>rewrite</code>':
+
+<pre>
+     reset(fv, filename);
+</pre>
+
+  But  '<code>reset</code>' and  '<code>rewrite</code>' are  procedures,  not functions  -  there is  no
+  status return and no way  to regain control if for some reason the attempted
+  access fails.&#160;<tt> </tt>(UCSD provides a compile-time  flag that disables the  normal
+  abort.) And since fv's cannot appear in expressions like
+
+<pre>
+     reset(fv, filename);
+     if fv = failure then ...
+</pre>
+
+  there  is no  escape in  that  direction either.&#160;<tt> </tt>This  straitjacket makes  it
+  essentially impossible to write programs  that recover from mis-spelled file
+  names, etc.&#160;<tt> </tt>I never solved it adequately in the 'Tools' revision.
+<p>
+    There  is no  notion of access  to command-line arguments, again  probably
+  reflecting Pascal's  batch-processing origins.&#160;<tt> </tt>Local  routines may allow  it
+  by adding non-standard procedures to the environment.
+<p>
+    Since  it is not possible to write a general-purpose  storage allocator in
+  Pascal (there  being no way  to talk  about the types  that such a  function
+  would  return), the  language has  a  built-in procedure  called '<code>new</code>'  that
+  allocates space from a heap.&#160;<tt> </tt>Only defined types may be allocated, so it  is
+  not possible  to allocate,  for example,  arrays of arbitrary  size to  hold
+  character strings.&#160;<tt> </tt>The  pointers returned by '<code>new</code>' may be passed around  but
+  not manipulated: there is  no pointer arithmetic.&#160;<tt> </tt>There is no way to  regain
+  control if storage runs out.<p>
+    The new standard offers no change in any of these areas.
+
+
+<h2><a name="cosmetics">5.</a>&#160;<tt> </tt>Cosmetic Issues</h2>
+    Most  of these issues are  irksome to an experienced programmer, and  some
+  are probably a nuisance even to beginners.&#160;<tt> </tt>All can be lived with.
+<p>
+    Pascal,  in  common with  most  other Algol-inspired  languages, uses  the
+  semicolon as  a statement separator  rather than a  terminator (as it is  in
+  PL/I and C).&#160;<tt> </tt>As a  result one must have a reasonably sophisticated notion of
+  what a statement is to  put semicolons in properly.&#160;<tt> </tt>Perhaps more  important,
+  if one is  serious about using them  in the proper places, a fair amount  of
+  nuisance editing is needed.&#160;<tt> </tt>Consider the first cut at a program:
+
+<pre>
+     if a then
+             b;
+     c;
+</pre>
+
+  But if something must be  inserted before b, it no longer needs a semicolon,
+  because it now precedes an '<code>end</code>':
+
+<pre>
+     if a then begin
+             b0;
+             b
+     end;
+     c;
+</pre>
+
+  Now if we add an '<code>else</code>', we must remove the semicolon on the '<code>end</code>':
+
+<pre>
+     if a then begin
+             b0;
+             b
+     end
+     else
+             d;
+     c;
+</pre>
+
+  And so on and so  on, with semicolons rippling up and down the program as it
+  evolves.
+<p>
+    One  generally accepted  experimental result in  programmer psychology  is
+  that semicolon  as separator  is about ten  times more prone  to error  than
+  semicolon  as terminator.(<a href="#lit-16" name="source-16">16</a>)  (In Ada,(<a href="#lit-17" name="source-17">17</a>)  the  most significant  language
+  based on Pascal, semicolon is  a terminator.) Fortunately, in Pascal one can
+  almost  always  close  one's  eyes and  get  away  with  a  semicolon  as  a
+  terminator.&#160;<tt> </tt>The exceptions  are  in  places like  declarations,  where  the
+  separator vs. terminator problem doesn't seem  as serious anyway, and  just
+  before '<code>else</code>', which is easy to remember.<p>
+    C  and Ratfor programmers find  '<code>begin</code>' and '<code>end</code>' bulky compared to {  and
+  }.
+<p>
+    A  function name by itself is a call of  that function; there is no way to
+  distinguish such a  function call from a  simple variable except by  knowing
+  the names  of the  functions.&#160;<tt> </tt>Pascal uses  the Fortran trick  of having  the
+  function name act like a  variable within the function, except that where in
+  Fortran  the  function  name  really  is  a  variable,  and  can  appear  in
+  expressions,  in Pascal,  its appearance  in  an expression  is a  recursive
+  invocation: if f  is a zero-argument function, 'f:=f+1' is a recursive  call
+  of f.
+<p>
+    There  is  a paucity  of  operators (probably  related to  the paucity  of
+  precedence levels).&#160;<tt> </tt>In  particular, there are no bit-manipulation  operators
+  (AND,  OR, XOR,  etc.).&#160;<tt> </tt>I simply  gave up  trying  to write  the  following
+  trivial encryption program in Pascal:
+
+<pre>
+     i := 1;
+     while getc(c) &lt;&gt; ENDFILE do begin
+             putc(xor(c, key[i]));
+             i := i mod keylen + 1
+     end
+</pre>
+
+  because I  couldn't write a  sensible '<code>xor</code>' function.&#160;<tt> </tt>The set types help  a
+  bit here (so  to speak), but not  enough; people who claim that Pascal is  a
+  system  programming  language  have generally  overlooked  this  point.&#160;<tt> </tt>For
+  example, [<a href="#lit-18" name="source-18">18</a>, p. 685]
+<blockquote>
+      ``Pascal  is at the  present time  [1977] the best  language in the
+      public  domain  for  purposes of  system  programming  and software
+      implementation.''
+</blockquote>
+  seems a bit naive.
+
+<p>
+    There  is no  null string, perhaps because  Pascal uses the doubled  quote
+  notation to indicate a quote embedded in a string:
+
+<pre>
+     'This is a '' character'
+</pre>
+
+  There is  no way  to put  non-graphic symbols  into strings.&#160;<tt> </tt>In fact,  non-graphic characters  are unpersons in  a stronger  sense, since they are  not
+  mentioned in  any part  of the  standard language.&#160;<tt> </tt>Concepts like  newlines,
+  tabs, and so  on are handled on  each system in an 'ad hoc' manner,  usually
+  by  knowing something  about  the character  set  (e.g., ASCII  newline  has
+  decimal value 10).
+<p>
+    There  is no macro processor.&#160;<tt> </tt>The '<code>const</code>' mechanism for  defining manifest
+  constants takes  care of  about 95  percent of  the uses  of simple  #define
+  statements  in C,  but more  involved  ones are  hopeless.&#160;<tt> </tt>It is  certainly
+  possible to put a  macro preprocessor on a Pascal compiler.&#160;<tt> </tt>This allowed  me
+  to simulate a sensible '<code>error</code>' procedure as
+
+<pre>
+     #define error(s)begin writeln(s); halt end
+</pre>
+
+  ('<code>halt</code>' in  turn might be defined  as a branch to  the end of the  outermost
+  block.) Then calls like
+<pre>
+     error('little string');
+     error('much bigger string');
+</pre>
+
+  work  since '<code>writeln</code>'  (as  part of  the  standard Pascal  environment)  can
+  handle strings of any size.&#160;<tt> </tt>It is unfortunate that there is no way  to make
+  this convenience available to routines in general.
+<p>
+    The  language prohibits expressions in declarations, so it is not possible
+  to write things like
+
+<pre>
+      const   SIZE = 10;
+      type    arr = array [1..SIZE+1] of integer;
+</pre>
+
+  or even simpler ones like
+
+<pre>
+      const   SIZE = 10;
+              SIZE1 = SIZE + 1;
+</pre>
+<h2>6.&#160;<tt> </tt>Perspective</h2>
+    The  effort to rewrite the programs in 'Software Tools'  started in March,
+  1980,  and, in  fits  and  starts, lasted  until  January, 1981.&#160;<tt> </tt>The  final
+  product(<a href="#lit-19" name="source-19">19</a>)  was published  in  June, 1981.&#160;<tt> </tt>During  that time  I  gradually
+  adapted to  most of  the superficial  problems with  Pascal (cosmetics,  the
+  inadequacies  of control  flow), and  developed imperfect  solutions to  the
+  significant ones (array sizes, run-time environment).
+<p>
+    The  programs  in  the book  are  meant  to be  complete,  well-engineered
+  programs that do  non-trivial tasks.&#160;<tt> </tt>But they  do not have to be  efficient,
+  nor are their interactions with  the operating system very complicated, so I
+  was able  to get  by with  some pretty  kludgy solutions,  ones that  simply
+  wouldn't work for real programs.
+<p>
+    There  is no significant way  in which I found  Pascal superior to C,  but
+  there are several places  where it is a clear improvement over Ratfor.&#160;<tt> </tt>Most
+  obvious by far is recursion:  several programs are much cleaner when written
+  recursively,   notably  the   pattern-search,  quicksort,   and   expression
+  evaluation.
+<p>
+    Enumeration  data types  are a good  idea.&#160;<tt> </tt>They simultaneously delimit  the
+  range  of legal  values and  document them.&#160;<tt> </tt>Records help  to group  related
+  variables.&#160;<tt> </tt>I found relatively little use for pointers.
+<p>
+    Boolean  variables are  nicer than  integers for  Boolean conditions;  the
+  original  Ratfor programs  contained  some unnatural  constructions  because
+  Fortran's logical variables are badly designed.
+<p>
+    Occasionally  Pascal's type checking would  warn of a slip of the hand  in
+  writing a  program; the run-time  checking of  values also indicated  errors
+  from time to time, particularly subscript range violations.
+<p>
+    Turning  to the negative side, recompiling a large program from scratch to
+  change a single line of  source is extremely tiresome; separate compilation,
+  with or without type checking, is mandatory for large programs.
+<p>
+    I  derived little benefit from the fact that characters are part of Pascal
+  and not part  of Fortran, because the  Pascal treatment of strings and 
+  non-graphics is so  inadequate.&#160;<tt> </tt>In both languages,  it is appallingly clumsy  to
+  initialize literal strings  for tables of keywords, error messages, and  the
+  like.
+<p>
+    The  finished programs  are in  general about  the same  number of  source
+  lines as  their Ratfor  equivalents.&#160;<tt> </tt>At  first this surprised  me, since  my
+  preconception was  that Pascal is  a wordier  and less expressive  language.
+  The real  reason seems to  be that  Pascal permits arbitrary expressions  in
+  places like  loop limits  and subscripts  where Fortran  (that is,  portable
+  Fortran  66)  does not,  so  some  useless assignments  can  be  eliminated;
+  furthermore,  the Ratfor  programs declare  functions while  Pascal ones  do
+  not.
+<p>
+
+    To close, let me summarize the main points in the case against Pascal.
+<ol>
+<li>  Since  the size of an array is  part of its type, it is not possible  to
+      write  general-purpose  routines,  that  is,  to  deal  with  arrays  of
+      different sizes.&#160;<tt> </tt>In particular, string handling is very difficult.
+
+<li>  The  lack of static variables,  initialization and a way to  communicate
+      non-hierarchically  combine to destroy the  ``locality'' of a program  -
+      variables require much more scope than they ought to.
+
+<li>  The one-pass  nature of the language forces procedures and functions  to
+      be presented  in an unnatural order; the enforced separation of  various
+      declarations   scatters   program  components   that  logically   belong
+      together.
+
+<li>  The  lack  of  separate compilation  impedes  the development  of  large
+      programs and makes the use of libraries impossible.
+
+<li>  The  order of logical expression evaluation cannot be controlled,  which
+      leads to convoluted code and extraneous variables.
+
+<li>  The '<code>case</code>' statement is emasculated because there is no default clause.
+
+<li>  The  standard  I/O is  defective.&#160;<tt> </tt>There  is  no sensible  provision  for
+      dealing  with  files  or  program  arguments  as part  of  the  standard
+      language, and no extension mechanism.
+
+<li>  The  language  lacks  most of  the  tools  needed for  assembling  large
+      programs, most notably file inclusion.
+
+<li>  There is no escape.
+</ol>
+
+    This  last point is perhaps the most important.&#160;<tt> </tt>The language is inadequate
+  but circumscribed, because there is  no way to escape its limitations.&#160;<tt> </tt>There
+  are no casts  to disable the type-checking  when necessary.&#160;<tt> </tt>There is no  way
+  to replace  the defective run-time environment  with a sensible one,  unless
+  one  controls the  compiler that  defines the  ``standard procedures.''  The
+  language is closed.
+<p>
+    People  who use  Pascal for serious  programming fall into  a fatal  trap.<p>
+  Because the  language is so  impotent, it must  be extended.&#160;<tt> </tt>But each  group
+  extends Pascal in its own  direction, to make it look like whatever language
+  they really want.&#160;<tt> </tt>Extensions for  separate compilation, Fortran-like COMMON,
+  string  data  types,   internal  static  variables,  initialization,   octal
+  numbers, bit  operators, etc., all  add to the  utility of the language  for
+  one group, but destroy its portability to others.
+<p>
+    I  feel that it is  a mistake to use  Pascal for anything much beyond  its
+  original target.&#160;<tt> </tt>In  its pure form, Pascal  is a toy language, suitable  for
+  teaching but not for real programming.
+
+
+<h2>Acknowledgments</h2>
+
+    I  am  grateful to  Al  Aho, Al  Feuer, Narain  Gehani,  Bob Martin,  Doug
+  McIlroy, <a href="rob/index.html" name="rob">Rob Pike</a>,
+  <a href="https://www.cs.bell-labs.com/who/dmr/index.html" name="dmr">Dennis Ritchie</a>,
+  Chris Van Wyk and Charles Wetherell  for
+  helpful criticisms of earlier versions of this paper.
+<dl compact>
+<dt><a href="#source-1" name="lit-1">[1]</a><dd>Feuer,  A.  R.  and N.  H. Gehani,  ``A  Comparison of
+	the  Programming Languages  C  and  Pascal  -  Part  I: Language 
+	Concepts,''  Bell  Labs internal memorandum (September 1979).
+<p><dt><a href="#source-2" name="lit-2">[2]</a><dd>N. H. Gehani and A. R. Feuer,
+	``A Comparison  of  the  Programming Languages  C and Pascal 
+		- Part  II: Program Properties and  Programming Domains,''
+		Bell Labs internal memorandum (February 1980).
+<p><dt><a href="#source-3" name="lit-3">[3]</a><dd>P.  Mateti,
+	``Pascal  versus  C: A  Subjective  Comparison,''  Language
+      Design  and Programming Methodology Symposium, Springer-Verlag,
+      Sydney, Australia (September 1979).
+<p><dt><a href="#source-4" name="lit-4">[4]</a><dd>A. Springer, ``A Comparison of Language C and Pascal,''
+	IBM  Technical Report G320-2128, Cambridge Scientific Center
+	(August 1979).
+<p><dt><a href="#source-5" name="lit-5">[5]</a><dd>B. W. Kernighan and P. J. Plauger,
+	Software Tools,  Addison-Wesley, Reading, Mass. (1976).
+<p><dt><a href="#source-6" name="lit-6">[6]</a><dd>K. Jensen,  Pascal User Manual  and Report,
+	Springer-Verlag (1978).  (2nd edition.)
+<p><dt><a href="#source-7" name="lit-7">[7]</a><dd>David V.  Moffat,
+	``A Categorized Pascal Bibliography,'' SIGPLAN Notices
+      15(10), pp. 63-75 (October 1980).
+<p><dt><a href="#source-8" name="lit-8">[8]</a><dd>A.  N.  Habermann,  ``Critical  Comments  on  the 
+	Programming  Language Pascal,'' Acta Informatica 3, pp. 47-57 (1973).
+<p><dt><a href="#source-9" name="lit-9">[9]</a><dd>O. Lecarme  and   P.  Desjardins,
+	``More  Comments  on  the  Programming Language Pascal,''
+	Acta Informatica 4, pp. 231-243 (1975).
+<p><dt><a href="#source-10" name="lit-10">[10]</a><dd>H.  J.   Boom  and  E.  DeJong,
+	``A  Critical  Comparison  of   Several Programming Language
+		Implementations,''   Software   Practice   and
+      Experience 10(6), pp. 435-473 (June 1980).
+<p><dt><a href="#source-11" name="lit-11">[11]</a><dd>N.  Wirth,
+	``An Assessment  of the  Programming Language Pascal,''  IEEE
+      Transactions on Software Engineering SE-1(2), pp. 192-198 (June, 1975).
+<p><dt><a href="#source-12" name="lit-12">[12]</a><dd>O. Lecarme and P. Desjardins, ibid, p. 239.
+<p><dt><a href="#source-13" name="lit-13">[13]</a><dd>A. M.  Addyman,
+	``A Draft Proposal for Pascal,'' SIGPLAN Notices  15(4),
+      pp. 1-66 (April 1980).
+<p><dt><a href="#source-14" name="lit-14">[14]</a><dd>J.  Welsh,  W. J.  Sneeringer, and  C.  A. R.  Hoare,
+	``Ambiguities  and Insecurities in Pascal,''
+	Software Practice and Experience 7, pp.  685-696 (1977).
+<p><dt><a href="#source-15" name="lit-15">[15]</a><dd>N. Wirth, ibid., p. 196.
+<p><dt><a href="#source-16" name="lit-16">[16]</a><dd>J.  D.  Gannon and  J. J.  Horning,
+	``Language Design  for  Programming Reliability,''
+	IEEE Trans.  Software Engineering  SE-1(2), pp.  179-191
+      (June 1975).
+<p><dt><a href="#source-17" name="lit-17">[17]</a><dd>J. D.  Ichbiah, et al,
+	``Rationale for the Design of the Ada Programming Language,''
+	SIGPLAN Notices 14(6) (June 1979).
+<p><dt><a href="#source-18" name="lit-18">[18]</a><dd>J. Welsh, W. J. Sneeringer, and C. A. R. Hoare,
+	ibid.
+<p><dt><a href="#source-19" name="lit-19">[19]</a><dd>B.  W. Kernighan and P.  J. Plauger,
+	Software Tools in Pascal, Addison-Wesley (1981).
+</dl>
+</body>
+</html>
+
