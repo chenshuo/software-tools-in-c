@@ -1,0 +1,18 @@
+{ Copyright (C) 1981 by Bell Laboratories, Inc., and Whitesmiths Ltd. }
+{ archproc -- include procedures for archive }
+#include "getword.p"
+#include "gethdr.p"
+#include "filearg.p"
+#include "fskip.p"
+#include "fmove.p"
+#include "acopy.p"
+#include "notfound.p"
+#include "addfile.p"
+#include "replace.p"
+#include "help.p"
+#include "getfns.p"
+#include "update.p"
+#include "table.p"
+#include "extract.p"
+#include "delete.p"
+#include "initarch.p"

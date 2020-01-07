@@ -1,4 +1,4 @@
--h- README 1647
+-h- README 8994
 Software Tools in Pascal
 
 Copyright (C) 1981 by Bell Laboratories, Inc., and Whitesmiths Ltd.
@@ -7046,7 +7046,7 @@ begin
 	end;
 	term := v
 end;
--h- MAN/archive.m 1987
+-h- MAN/archive.m 1965
 { Copyright (C) 1981 by Bell Laboratories, Inc., and Whitesmiths Ltd. }
 .NM archive maintain file archive
 .SY

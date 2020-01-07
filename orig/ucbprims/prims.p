@@ -1,0 +1,15 @@
+{ Copyright (C) 1981 by Bell Laboratories, Inc., and Whitesmiths Ltd. }
+{ prims -- primitive functions and procedures for UCB }
+#include "initio.p"
+#include "open.p"
+#include "create.p"
+#include "getc.p"
+#include "getcf.p"
+#include "getline.p"
+#include "putc.p"
+#include "putcf.p"
+#include "putstr.p"
+#include "close.p"
+#include "remove.p"
+#include "getarg.p"
+#include "nargs.p"

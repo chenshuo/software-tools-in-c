@@ -1,0 +1,10 @@
+{ Copyright (C) 1981 by Bell Laboratories, Inc., and Whitesmiths Ltd. }
+#include "seek.p"
+#include "setbuf2.p"
+#include "clrbuf2.p"
+#include "getmark.p"
+#include "putmark.p"
+#include "gettxt2.p"
+#include "reverse.p"
+#include "blkmove.p"
+#include "puttxt2.p"
