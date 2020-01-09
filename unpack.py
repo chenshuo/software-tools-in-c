@@ -3,21 +3,19 @@
 import os, re, sys
 
 def write_file(name, content):
-    path = name.split('/')
-    if len(path) > 1:
-        directory = path[0].lower()
+    path, file = os.path.split(name)
+    directory = path.lower()
+    if path:
         if not os.path.exists(directory):
             os.mkdir(directory)
-        file = os.path.join(directory, path[1])
-    else:
-        file = path[0]
-    with open(file, 'w') as out:
+    with open(os.path.join(directory, file), 'w') as out:
         out.write(content)
 
-# -h- README 1647
-header = re.compile('^-h- ([^ ]+) (\\d+)')
 
-with open(sys.argv[1]) as archive:
+def unpack(archive):
+    # -h- README 1647
+    header = re.compile('^-h- ([^ ]+) (\\d+)')
+
     line = archive.readline()
     while line:
         m = header.match(line)
@@ -30,3 +28,11 @@ with open(sys.argv[1]) as archive:
         else:
             print("err: ", line)
             break
+
+
+if len(sys.argv) > 1:
+    if sys.argv[1] == '-':
+        unpack(sys.stdin)
+    else:
+        with open(sys.argv[1]) as archive:
+            unpack(archive)
