@@ -1,5 +1,6 @@
 ANTLR=$(HOME)/jars/antlr-4.7.2-complete.jar
 CLANG_FORMAT=clang-format
+CXX?=g++
 JAR=/usr/lib/jvm/default-java/bin/jar
 JAVA=/usr/lib/jvm/default-java/bin/java
 JAVAC=/usr/lib/jvm/default-java/bin/javac
@@ -27,7 +28,7 @@ BINS=$(patsubst cpp/%,bin/%,$(basename $(SRCS)))
 
 bin/% : cpp/%.cc
 	@mkdir -p $(dir $@)
-	g++ -g -Wall $^ -o $@
+	$(CXX) -O2 -g -Wall -Wextra $^ -o $@
 
 tests: $(BINS)
 	cd cpp && ./test.py
