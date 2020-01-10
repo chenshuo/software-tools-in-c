@@ -1,5 +1,5 @@
 #include "../p2c.h"
-#include "intro.h"
+#include "filters.h"
 
 // tabpos -- return true if col is a tab stop
 boolean tabpos(integer col, tabtype& tabstops)

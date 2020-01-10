@@ -3,7 +3,7 @@ CLANG_FORMAT=clang-format
 JAR=/usr/lib/jvm/default-java/bin/jar
 JAVA=/usr/lib/jvm/default-java/bin/java
 JAVAC=/usr/lib/jvm/default-java/bin/javac
-ARGS?=$(wildcard orig/intro/*.p)
+ARGS?=$(wildcard orig/intro/*.p) $(wildcard orig/filters/*.p)
 
 all: bin/p2c.jar
 
@@ -16,7 +16,7 @@ p2c/PascalParser.java: Pascal.g4
 
 run: bin/p2c.jar
 	$(JAVA) -ea -cp $(ANTLR):bin/p2c.jar p2c.Convert $(ARGS) | ./unpack.py -
-	$(CLANG_FORMAT) --style=WebKit -i orig/*/*.cc
+	$(CLANG_FORMAT) --style="{BasedOnStyle: WebKit, SpacesBeforeTrailingComments: 2}" -i orig/*/*.cc
 
 #
 #  C++

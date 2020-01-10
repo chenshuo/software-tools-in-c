@@ -1,6 +1,7 @@
 #include "../p2c.h"
 #include "intro.h"
 
+// charcount -- count characters in standard input
 void charcount()
 {
     integer nc;

@@ -1,5 +1,5 @@
 #include "../p2c.h"
-#include "intro.h"
+#include "filters.h"
 
 // settabs -- set initial tab stops
 void settabs(tabtype& tabstops)

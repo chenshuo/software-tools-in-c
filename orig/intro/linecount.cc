@@ -1,6 +1,7 @@
 #include "../p2c.h"
 #include "intro.h"
 
+// linecount -- count lines in standard input
 void linecount()
 {
     integer nl;

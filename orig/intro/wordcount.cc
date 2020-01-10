@@ -1,6 +1,7 @@
 #include "../p2c.h"
 #include "intro.h"
 
+// wordcount -- count words in standard input
 void wordcount()
 {
     integer nw;

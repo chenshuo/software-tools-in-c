@@ -3,11 +3,18 @@ package p2c;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import p2c.PascalParser.ArrayTypeContext;
@@ -37,13 +44,21 @@ import p2c.PascalParser.WhileStatementContext;
 
 class Visitor extends PascalBaseVisitor<Void> {
 	private CommonTokenStream tokens;
+
 	private ByteArrayOutputStream os = new ByteArrayOutputStream();
 	private PrintWriter out = new PrintWriter(os);
+
+	private Pattern commentPattern = Pattern.compile("^\\{ *(.*) *\\}$");
+	private List<Token> comments = new ArrayList<>();
+	private Set<Integer> headComments = new HashSet<>();
+	private int nextComment = 0;
+
 	private Map<String, String> operatorMap = new HashMap<>();
 	private String function = null;
 
 	public Visitor(CommonTokenStream tokens) {
 		this.tokens = tokens;
+		fillComments();
 
 		operatorMap.put("=", "==");
 		operatorMap.put("<>", "!=");
@@ -51,12 +66,30 @@ class Visitor extends PascalBaseVisitor<Void> {
 		operatorMap.put("div", "/");
 	}
 
+	private void fillComments() {
+		boolean head = true;
+		for (Token t : tokens.getTokens()) {
+			if (t.getType() == PascalLexer.COMMENT) {
+				if (!t.getText().startsWith("{ Copyright (C) 1981 ")) {
+					comments.add(t);
+					if (head)
+						headComments.add(t.getTokenIndex());
+				}
+			}
+			if (t.getType() == PascalLexer.NL) {
+				head = true;
+			} else if (t.getType() != PascalLexer.WS) {
+				head = false;
+			}
+		}
+	}
+
 	public String convert(String filename, SourceFileContext tree) {
 		out.println("#include \"../p2c.h\"");
 		out.printf("#include \"%s.h\"\n\n", Path.of(filename).getParent().getFileName());
 		visit(tree);
 		out.flush();
-		return os.toString();
+		return os.toString().replace("\n@//", "  //");
 	}
 
 	@Override
@@ -75,6 +108,7 @@ class Visitor extends PascalBaseVisitor<Void> {
 
 	private void convertFunction(String type, String funcName, FormalParameterListContext formalParameterList,
 			BlockContext block) {
+		flushComment(block);
 		out.print(type + " " + funcName + "(");
 		visitFormalParameterList(formalParameterList);
 		out.println(")");
@@ -120,6 +154,7 @@ class Visitor extends PascalBaseVisitor<Void> {
 
 	@Override
 	public Void visitConstantDefinition(ConstantDefinitionContext ctx) {
+		flushComment(ctx);
 		ConstantContext constant = ctx.constant();
 		out.printf("const int %s = %s;\n", ctx.ID().getText(), constant.getText());
 		return null;
@@ -127,6 +162,7 @@ class Visitor extends PascalBaseVisitor<Void> {
 
 	@Override
 	public Void visitTypeDefinition(TypeDefinitionContext ctx) {
+		flushComment(ctx);
 		String typeName = ctx.ID().getText();
 		TypeContext type = ctx.type();
 		out.printf("using %s = %s;\n", typeName, formatType(type));
@@ -135,6 +171,7 @@ class Visitor extends PascalBaseVisitor<Void> {
 
 	@Override
 	public Void visitVariableDeclaration(VariableDeclarationContext ctx) {
+		flushComment(ctx);
 		String type = formatType(ctx.type());
 		out.print(type + " ");
 		boolean first = true;
@@ -154,6 +191,12 @@ class Visitor extends PascalBaseVisitor<Void> {
 	//
 
 	@Override
+	public Void visitStatement(StatementContext ctx) {
+		flushComment(ctx);
+		return super.visitStatement(ctx);
+	}
+
+	@Override
 	public Void visitCompoundStatement(CompoundStatementContext ctx) {
 		out.println("{");
 		visitStatements(ctx.statements());
@@ -167,8 +210,7 @@ class Visitor extends PascalBaseVisitor<Void> {
 			// Not 100% correct if there are more statements after return;
 			out.print("return ");
 		} else {
-			appendVerbatim(ctx.variable());
-			out.print(" = ");
+			out.print(getText(ctx.variable()) + " = ");
 		}
 		append(ctx.expression());
 		out.println(";");
@@ -178,11 +220,9 @@ class Visitor extends PascalBaseVisitor<Void> {
 	@Override
 	public Void visitProcedureStatement(ProcedureStatementContext ctx) {
 		if (ctx.functionDesignator() == null) {
-			appendVerbatim(ctx);
-			out.println("();");
+			out.println(getText(ctx) + "();");
 		} else {
-			appendVerbatim(ctx);
-			out.println(";");
+			out.println(getText(ctx) + ";");
 		}
 		return null;
 	}
@@ -247,7 +287,6 @@ class Visitor extends PascalBaseVisitor<Void> {
 	//
 
 	private String formatType(TypeContext type) {
-		StringBuilder sb = new StringBuilder();
 		if (type.subrangeType() != null) {
 			return formatSubtange(type.subrangeType());
 		} else if (type.typeIdentifier() != null) {
@@ -263,10 +302,7 @@ class Visitor extends PascalBaseVisitor<Void> {
 		}
 
 		// Don't know how to format this.
-		sb.append("/* XXX */ ");
-		for (int i = type.start.getTokenIndex(); i <= type.stop.getTokenIndex(); ++i)
-			sb.append(tokens.get(i).getText());
-		return sb.toString();
+		return getText(type);
 	}
 
 	static private String formatSubtange(SubrangeTypeContext subrange) {
@@ -277,9 +313,8 @@ class Visitor extends PascalBaseVisitor<Void> {
 		return sprintf("%s[%s+1]", formatType(arrayType.type()), arrayType.subrangeType().constant(1).getText());
 	}
 
-	private void appendVerbatim(ParserRuleContext ctx) {
-		for (int i = ctx.start.getTokenIndex(); i <= ctx.stop.getTokenIndex(); ++i)
-			out.print(tokens.get(i).getText());
+	private String getText(ParserRuleContext ctx) {
+		return tokens.getText(ctx.start, ctx.stop);
 	}
 
 	private void appendCondition(ExpressionContext ctx) {
@@ -308,6 +343,22 @@ class Visitor extends PascalBaseVisitor<Void> {
 		if (ctx.simpleExpression(0).term(0).signedFactor().size() > 1)
 			return true;
 		return false;
+	}
+
+	private void flushComment(ParserRuleContext ctx) {
+		while (nextComment < comments.size() && comments.get(nextComment).getTokenIndex() < ctx.start.getTokenIndex()) {
+			out.println(formatComment(comments.get(nextComment)));
+			++nextComment;
+		}
+	}
+
+	private String formatComment(Token token) {
+		assert token.getType() == PascalLexer.COMMENT;
+		String comment = token.getText();
+		Matcher matcher = commentPattern.matcher(comment);
+		boolean found = matcher.find();
+		assert found;
+		return sprintf("%s// %s", headComments.contains(token.getTokenIndex()) ? "" : "@", matcher.group(1));
 	}
 
 	static String sprintf(String format, Object... args) {

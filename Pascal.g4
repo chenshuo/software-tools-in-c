@@ -295,7 +295,8 @@ KEYWORDS
 
 VAR : 'var' ;
 
-WS : [ \t\r\n]+ -> channel(HIDDEN) ;
+WS : [ \t\r]+ -> channel(HIDDEN) ;
+NL : [\n]+ -> channel(HIDDEN) ;
 COMMENT : '{' (~'}')* '}' -> channel(HIDDEN) ;
 INCLUDE: '#include "' [a-z0-9.]+ '"' -> channel(HIDDEN);
 
