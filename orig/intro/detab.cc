@@ -1,7 +1,10 @@
 #include "../p2c.h"
+#include "intro.h"
 
 void detab()
 {
+    const int MAXLINE = 1000;
+    using tabtype = boolean[MAXLINE + 1];
     character c;
     integer col;
     tabtype tabstops;

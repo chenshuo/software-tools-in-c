@@ -1,0 +1,61 @@
+[
+  {
+    "bin": "copy",
+    "tests": [
+      ["", ""],
+      ["abc", "abc"]
+    ]
+  },
+  {
+    "bin": "charcount",
+    "tests": [
+      ["", "0\n"],
+      ["abc", "3\n"]
+    ]
+  },
+  {
+    "bin": "linecount",
+    "tests": [
+      ["", "0\n"],
+      ["\n", "1\n"],
+      ["\n\n", "2\n"],
+      ["\n\n\n", "3\n"],
+      ["abc", "0\n"],
+      ["abc\n", "1\n"]
+    ]
+  },
+  {
+    "bin": "wordcount",
+    "tests": [
+      ["", "0\n"],
+      ["\n", "0\n"],
+      ["\n\n", "0\n"],
+      ["abc", "1\n"],
+      ["  abc", "1\n"],
+      ["  abc   ", "1\n"],
+      ["abc\n", "1\n"],
+      ["a bc", "2\n"],
+      ["a b c", "3\n"],
+      [" aa   bbb \n   cccc   ", "3\n"]
+    ]
+  },
+  {
+    "bin": "detab",
+    "tests": [
+      ["", ""],
+      ["\n", "\n"],
+      ["\tabc",     "    abc"     ],
+      [" \tabc",    "    abc"     ],
+      ["  \tabc",   "    abc"     ],
+      ["   \tabc",  "    abc"     ],
+      ["    \tabc", "        abc" ],
+      ["\tabc\n",   "    abc\n"   ],
+      ["\tabc\nde", "    abc\nde" ],
+      ["a\tbc",     "a   bc"      ],
+      ["aaa\tbc",   "aaa bc"      ],
+      ["aaaa\tbc",  "aaaa    bc"  ],
+      ["a\tb\tc",   "a   b   c"   ],
+      ["\n\t", "\n    "]
+    ]
+  }
+]

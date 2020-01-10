@@ -43,7 +43,7 @@ public class Convert {
 				continue;
 			}
 			Visitor v = new Visitor(tokens);
-			String cpp = v.convert(source);
+			String cpp = v.convert(filename, source);
 			out.println("-h- " + filename.replaceFirst("\\.p$", ".cc") + " " + cpp.length());
 			out.print(cpp);
 		}

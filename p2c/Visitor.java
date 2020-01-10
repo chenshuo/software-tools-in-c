@@ -2,6 +2,7 @@ package p2c;
 
 import java.io.ByteArrayOutputStream;
 import java.io.PrintWriter;
+import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -9,10 +10,12 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
+import p2c.PascalParser.ArrayTypeContext;
 import p2c.PascalParser.AssignmentStatementContext;
 import p2c.PascalParser.BlockContext;
 import p2c.PascalParser.CompoundStatementContext;
-import p2c.PascalParser.ConstantDefinitionPartContext;
+import p2c.PascalParser.ConstantContext;
+import p2c.PascalParser.ConstantDefinitionContext;
 import p2c.PascalParser.ExpressionContext;
 import p2c.PascalParser.ForStatementContext;
 import p2c.PascalParser.FormalParameterListContext;
@@ -27,16 +30,17 @@ import p2c.PascalParser.SourceFileContext;
 import p2c.PascalParser.StatementContext;
 import p2c.PascalParser.SubrangeTypeContext;
 import p2c.PascalParser.TypeContext;
-import p2c.PascalParser.TypeDefinitionPartContext;
+import p2c.PascalParser.TypeDefinitionContext;
+import p2c.PascalParser.UnpackedStructuredTypeContext;
 import p2c.PascalParser.VariableDeclarationContext;
-import p2c.PascalParser.VariableDeclarationPartContext;
 import p2c.PascalParser.WhileStatementContext;
 
 class Visitor extends PascalBaseVisitor<Void> {
 	private CommonTokenStream tokens;
 	private ByteArrayOutputStream os = new ByteArrayOutputStream();
 	private PrintWriter out = new PrintWriter(os);
-	Map<String, String> operatorMap = new HashMap<>();
+	private Map<String, String> operatorMap = new HashMap<>();
+	private String function = null;
 
 	public Visitor(CommonTokenStream tokens) {
 		this.tokens = tokens;
@@ -47,8 +51,9 @@ class Visitor extends PascalBaseVisitor<Void> {
 		operatorMap.put("div", "/");
 	}
 
-	public String convert(SourceFileContext tree) {
-		out.println("#include \"../p2c.h\"\n");
+	public String convert(String filename, SourceFileContext tree) {
+		out.println("#include \"../p2c.h\"");
+		out.printf("#include \"%s.h\"\n\n", Path.of(filename).getParent().getFileName());
 		visit(tree);
 		out.flush();
 		return os.toString();
@@ -62,7 +67,9 @@ class Visitor extends PascalBaseVisitor<Void> {
 
 	@Override
 	public Void visitFunctionDeclaration(FunctionDeclarationContext ctx) {
-		convertFunction(ctx.typeIdentifier().getText(), ctx.ID().getText(), ctx.formalParameterList(), ctx.block());
+		function = ctx.ID().getText();
+		convertFunction(ctx.typeIdentifier().getText(), function, ctx.formalParameterList(), ctx.block());
+		function = null;
 		return null;
 	}
 
@@ -98,48 +105,47 @@ class Visitor extends PascalBaseVisitor<Void> {
 	@Override
 	public Void visitBlock(BlockContext ctx) {
 		out.println("{");
-		visitConstantDefinitionPart(ctx.constantDefinitionPart());
-		visitTypeDefinitionPart(ctx.typeDefinitionPart());
-		visitVariableDeclarationPart(ctx.variableDeclarationPart());
+		if (ctx.constantDefinitionPart() != null)
+			visitConstantDefinitionPart(ctx.constantDefinitionPart());
+		if (ctx.typeDefinitionPart() != null)
+			visitTypeDefinitionPart(ctx.typeDefinitionPart());
+		if (ctx.variableDeclarationPart() != null) {
+			visitVariableDeclarationPart(ctx.variableDeclarationPart());
+			out.println();
+		}
 		visitStatements(ctx.compoundStatement().statements());
 		out.println("}");
 		return null;
 	}
 
 	@Override
-	public Void visitConstantDefinitionPart(ConstantDefinitionPartContext ctx) {
-		if (ctx == null)
-			return null;
-		// FIXME: implement this
+	public Void visitConstantDefinition(ConstantDefinitionContext ctx) {
+		ConstantContext constant = ctx.constant();
+		out.printf("const int %s = %s;\n", ctx.ID().getText(), constant.getText());
 		return null;
 	}
 
 	@Override
-	public Void visitTypeDefinitionPart(TypeDefinitionPartContext ctx) {
-		if (ctx == null)
-			return null;
-		// FIXME: implement this
+	public Void visitTypeDefinition(TypeDefinitionContext ctx) {
+		String typeName = ctx.ID().getText();
+		TypeContext type = ctx.type();
+		out.printf("using %s = %s;\n", typeName, formatType(type));
 		return null;
 	}
 
 	@Override
-	public Void visitVariableDeclarationPart(VariableDeclarationPartContext ctx) {
-		if (ctx == null)
-			return null;
-		for (VariableDeclarationContext decl : ctx.variableDeclaration()) {
-			String type = format(decl.type());
-			out.print(type + " ");
-			boolean first = true;
+	public Void visitVariableDeclaration(VariableDeclarationContext ctx) {
+		String type = formatType(ctx.type());
+		out.print(type + " ");
+		boolean first = true;
 
-			for (TerminalNode id : decl.identifierList().ID()) {
-				if (!first)
-					out.print(", ");
-				first = false;
-				out.print(id.getText());
-			}
-			out.println(";");
+		for (TerminalNode id : ctx.identifierList().ID()) {
+			if (!first)
+				out.print(", ");
+			first = false;
+			out.print(id.getText());
 		}
-		out.println();
+		out.println(";");
 		return null;
 	}
 
@@ -157,8 +163,13 @@ class Visitor extends PascalBaseVisitor<Void> {
 
 	@Override
 	public Void visitAssignmentStatement(AssignmentStatementContext ctx) {
-		appendVerbatim(ctx.variable());
-		out.print(" = ");
+		if (ctx.variable().getText().equals(function)) {
+			// Not 100% correct if there are more statements after return;
+			out.print("return ");
+		} else {
+			appendVerbatim(ctx.variable());
+			out.print(" = ");
+		}
 		append(ctx.expression());
 		out.println(";");
 		return null;
@@ -235,7 +246,7 @@ class Visitor extends PascalBaseVisitor<Void> {
 	// Type and expressions
 	//
 
-	private String format(TypeContext type) {
+	private String formatType(TypeContext type) {
 		StringBuilder sb = new StringBuilder();
 		if (type.subrangeType() != null) {
 			return formatSubtange(type.subrangeType());
@@ -243,22 +254,15 @@ class Visitor extends PascalBaseVisitor<Void> {
 			return type.getText();
 		} else {
 			assert type.structuredType().unpackedStructuredType() != null;
-			/*
 			UnpackedStructuredTypeContext structType = type.structuredType().unpackedStructuredType();
-			if (structType.arrayType() != null) {
-				ArrayTypeContext arrayType = structType.arrayType();
-				String index = arrayType.typeIdentifier() != null ? arrayType.typeIdentifier().getText()
-						: formatSubtange(arrayType.subrangeType());
-				return sprintf("Array<%s, %s>", format(arrayType.type()), index);
-			} else if (structType.recordType() != null) {
-				RecordTypeContext recordType = structType.recordType();
-				assert recordType.fieldList().variantPart() != null;
-			} else {
-				assert structType.fileType() != null;
-				FileTypeContext fileType = structType.fileType();
+			ArrayTypeContext arrayType = structType.arrayType();
+			if (arrayType != null) {
+				return formatArray(arrayType);
 			}
-			*/
+			// FIXME: record type
 		}
+
+		// Don't know how to format this.
 		sb.append("/* XXX */ ");
 		for (int i = type.start.getTokenIndex(); i <= type.stop.getTokenIndex(); ++i)
 			sb.append(tokens.get(i).getText());
@@ -267,6 +271,10 @@ class Visitor extends PascalBaseVisitor<Void> {
 
 	static private String formatSubtange(SubrangeTypeContext subrange) {
 		return sprintf("Range<%s, %s>", subrange.constant(0).getText(), subrange.constant(1).getText());
+	}
+
+	private String formatArray(ArrayTypeContext arrayType) {
+		return sprintf("%s[%s+1]", formatType(arrayType.type()), arrayType.subrangeType().constant(1).getText());
 	}
 
 	private void appendVerbatim(ParserRuleContext ctx) {

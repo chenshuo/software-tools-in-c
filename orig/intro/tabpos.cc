@@ -1,9 +1,10 @@
 #include "../p2c.h"
+#include "intro.h"
 
 boolean tabpos(integer col, tabtype& tabstops)
 {
     if (col > MAXLINE)
-        tabpos = true;
+        return true;
     else
-        tabpos = tabstops[col];
+        return tabstops[col];
 }
