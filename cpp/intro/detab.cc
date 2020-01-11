@@ -1,3 +1,4 @@
+// detab -- convert tabs to equivalent number of blanks
 #include <stdio.h>
 
 const int TABSPACE = 4;

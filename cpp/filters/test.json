@@ -20,6 +20,61 @@
       ["    a   bc", "\ta\tbc"],
       ["", ""]
     ]
+  },
+  {
+    "bin": "overstrike",
+    "tests": [
+      ["\n", " \n"],
+      ["\n\n", " \n \n"],
+      ["abc", " abc"],
+      ["abc\n", " abc\n"],
+      ["abc\b", " abc\n+  "],
+      ["abc\b\b", " abc\n+ "],
+      ["abc\b\b\b", " abc\n+"],
+      ["abc\b\b\b\b", " abc\n+"],
+      ["abc\bd", " abc\n+  d"],
+      ["abc\b\bd", " abc\n+ d"],
+      ["abc\b\bd", " abc\n+ d"],
+      ["abc\b\b\bd", " abc\n+d"],
+      ["abc\b\b\b\bd", " abc\n+d"],
+      ["", ""]
+    ]
+  },
+  {
+    "bin": "compress",
+    "tests": [
+      ["", ""],
+      ["~", "~A~"],
+      ["~~", "~B~"],
+      ["~~~", "~C~"],
+      ["~~~~", "~D~"],
+      ["~~~~~", "~E~"],
+      ["a", "a"],
+      ["aa", "aa"],
+      ["aaa", "aaa"],
+      ["aaaa", "~Da"],
+      ["aaaaa", "~Ea"],
+      ["aaaa     bbbbbb", "~Da~E ~Fb"],
+      ["\n\n\n\n", "~D\n"]
+    ]
+  },
+  {
+    "bin": "expand",
+    "tests": [
+      ["", ""],
+      ["~A~", "~"],
+      ["~B~", "~~"],
+      ["~C~", "~~~"],
+      ["~D~", "~~~~"],
+      ["~E~", "~~~~~"],
+      ["a",   "a"],
+      ["aa",  "aa"],
+      ["aaa", "aaa"],
+      ["~Da", "aaaa"],
+      ["~Ea", "aaaaa"],
+      ["~Da~E ~Fb", "aaaa     bbbbbb"],
+      ["~D\n", "\n\n\n\n"]
+    ]
   }
 ]
 

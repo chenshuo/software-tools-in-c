@@ -1,3 +1,4 @@
+// copy -- copy input to output
 #include <stdio.h>
 
 int main()

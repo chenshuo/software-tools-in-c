@@ -1,3 +1,4 @@
+// linecount -- count lines in standard input
 #include <stdio.h>
 
 int main()

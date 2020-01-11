@@ -1,3 +1,4 @@
+// wordcount -- count words in standard input
 #include <ctype.h>
 #include <stdio.h>
 

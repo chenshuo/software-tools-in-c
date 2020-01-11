@@ -1,3 +1,4 @@
+// charcount -- count characters in standard input
 #include <stdio.h>
 
 int main()

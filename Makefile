@@ -6,7 +6,13 @@ JAVA=/usr/lib/jvm/default-java/bin/java
 JAVAC=/usr/lib/jvm/default-java/bin/javac
 ARGS?=$(wildcard orig/intro/*.p) $(wildcard orig/filters/*.p)
 
-all: bin/p2c.jar
+SRCS=$(wildcard cpp/*/*.cc)
+BINS=$(patsubst cpp/%,bin/%,$(basename $(SRCS))) \
+     bin/filters/overstrike \
+     bin/filters/compress \
+     bin/filters/expand \
+
+all: $(BINS)
 
 bin/p2c.jar: $(wildcard p2c/*.java) p2c/PascalParser.java
 	$(JAVAC) -cp $(ANTLR) -d bin -sourcepath . p2c/Convert.java
@@ -23,13 +29,21 @@ run: bin/p2c.jar
 #  C++
 #
 
-SRCS=$(wildcard cpp/*/*.cc)
-BINS=$(patsubst cpp/%,bin/%,$(basename $(SRCS)))
-
 bin/% : cpp/%.cc
 	@mkdir -p $(dir $@)
 	$(CXX) -O2 -g -Wall -Wextra $^ -o $@
 
-tests: $(BINS)
-	cd cpp && ./test.py
+bin/filters/overstrike: orig/filters/overstrike.cc orig/lib.cc orig/util/max.cc
+	$(CXX) -O2 -g -Wall -Wextra $^ -o $@ -DMAIN=$(notdir $@)
 
+bin/filters/compress: orig/filters/compress.cc orig/filters/putrep.cc orig/lib.cc orig/util/min.cc
+	$(CXX) -O2 -g -Wall -Wextra $^ -o $@ -DMAIN=$(notdir $@)
+
+bin/filters/expand: orig/filters/expand.cc orig/lib.cc
+	$(CXX) -O2 -g -Wall -Wextra $^ -o $@ -DMAIN=$(notdir $@)
+
+tests: $(BINS)
+	cd cpp && ./test.py $(TEST)
+
+clean:
+	rm -rf $(BINS) bin/p2c* p2c/Pascal*

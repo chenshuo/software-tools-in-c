@@ -105,7 +105,9 @@ int main()
 ```
 
 **Progress**
+
 1. The `p2c` converter is almost done.
-2. The following directories has been rewritten in C++:
-    * `intro/` from chapter 1
+2. The following directories has been made working:
+    * `intro/` from Chapter 1, mostly rewritten.
+    * `filters/` from Chapter 2, only rewrote `echo`.
 
