@@ -53,6 +53,7 @@ class Visitor extends PascalBaseVisitor<Void> {
 	private Set<Integer> headComments = new HashSet<>();
 	private int nextComment = 0;
 
+	private Pattern stringPattern = Pattern.compile("^'(.*)'$");
 	private Map<String, String> operatorMap = new HashMap<>();
 	private String function = null;
 
@@ -70,11 +71,9 @@ class Visitor extends PascalBaseVisitor<Void> {
 		boolean head = true;
 		for (Token t : tokens.getTokens()) {
 			if (t.getType() == PascalLexer.COMMENT) {
-				if (!t.getText().startsWith("{ Copyright (C) 1981 ")) {
-					comments.add(t);
-					if (head)
-						headComments.add(t.getTokenIndex());
-				}
+				comments.add(t);
+				if (head)
+					headComments.add(t.getTokenIndex());
 			}
 			if (t.getType() == PascalLexer.NL) {
 				head = true;
@@ -208,21 +207,19 @@ class Visitor extends PascalBaseVisitor<Void> {
 	public Void visitAssignmentStatement(AssignmentStatementContext ctx) {
 		if (ctx.variable().getText().equals(function)) {
 			// Not 100% correct if there are more statements after return;
-			out.print("return ");
+			out.printf("return %s;\n", formatExpression(ctx.expression()));
 		} else {
-			out.print(getText(ctx.variable()) + " = ");
+			out.printf("%s = %s;\n", getText(ctx.variable()), formatExpression(ctx.expression()));
 		}
-		append(ctx.expression());
-		out.println(";");
 		return null;
 	}
 
 	@Override
 	public Void visitProcedureStatement(ProcedureStatementContext ctx) {
 		if (ctx.functionDesignator() == null) {
-			out.println(getText(ctx) + "();");
+			out.println(formatExpression(ctx) + "();");
 		} else {
-			out.println(getText(ctx) + ";");
+			out.println(formatExpression(ctx) + ";");
 		}
 		return null;
 	}
@@ -265,18 +262,12 @@ class Visitor extends PascalBaseVisitor<Void> {
 		ExpressionContext init = ctx.expression(0);
 		ExpressionContext last = ctx.expression(1);
 		String dir = ctx.direction().getText().toLowerCase();
-		out.printf("for (%s = ", var);
-		append(init);
-		out.print("; ");
+		out.printf("for (%s = %s; ", var, formatExpression(init));
 		if (dir.equals("to")) {
-			out.printf("%s <= ", var);
-			append(last);
-			out.printf("; ++%s)\n", var);
+			out.printf("%s <= %s; ++%s)\n", var, formatExpression(last), var);
 		} else {
 			assert dir.equals("downto");
-			out.printf("%s >= ", var);
-			append(last);
-			out.printf("; --%s)\n", var);
+			out.printf("%s >= %s; --%s)\n", var, formatExpression(last), var);
 		}
 
 		return super.visitStatement(ctx.statement());
@@ -306,7 +297,7 @@ class Visitor extends PascalBaseVisitor<Void> {
 	}
 
 	static private String formatSubtange(SubrangeTypeContext subrange) {
-		return sprintf("Range<%s, %s>", subrange.constant(0).getText(), subrange.constant(1).getText());
+		return sprintf("int /* %s .. %s */", subrange.constant(0).getText(), subrange.constant(1).getText());
 	}
 
 	private String formatArray(ArrayTypeContext arrayType) {
@@ -318,21 +309,37 @@ class Visitor extends PascalBaseVisitor<Void> {
 	}
 
 	private void appendCondition(ExpressionContext ctx) {
-		boolean needParen = needParen(ctx);
-		if (needParen)
-			out.print("(");
-		append(ctx);
-		if (needParen)
-			out.print(")");
+		if (needParen(ctx))
+			out.printf("(%s)", formatExpression(ctx));
+		else
+			out.print(formatExpression(ctx));
 	}
 
-	private void append(ExpressionContext ctx) {
+	private String formatExpression(ParserRuleContext ctx) {
+		StringBuilder sb = new StringBuilder();
 		for (int i = ctx.start.getTokenIndex(); i <= ctx.stop.getTokenIndex(); ++i) {
-			String tok = tokens.get(i).getText();
-			out.print(operatorMap.getOrDefault(tok, tok));
-			// FIXME: "x" -> 'x'
+			Token t = tokens.get(i);
+			String text = t.getText();
+			if (t.getType() == PascalLexer.STRING)
+				sb.append(formatString(text));
+			else
+				sb.append(operatorMap.getOrDefault(text, text));
 			// FIXME: a_func -> a_func()
 		}
+		return sb.toString();
+	}
+
+	private String formatString(String text) {
+		Matcher m = stringPattern.matcher(text);
+		if (m.find()) {
+			String str = m.group(1);
+			if (str.length() == 1)
+				return text;
+			str = str.replace("''", "'").replace("\"", "\\\"");
+			return "\"" + str + "\"";
+		} else
+			assert false;
+		return null;
 	}
 
 	private boolean needParen(ExpressionContext ctx) {

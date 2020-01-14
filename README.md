@@ -13,7 +13,7 @@ and `using` for type aliases.
 To run the first part,
 
 ```shell
-make run
+make convert
 ```
 
 and check Pascal and C++ code in `orig/`

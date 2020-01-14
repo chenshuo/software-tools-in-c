@@ -1,6 +1,7 @@
 #include "../p2c.h"
 #include "filters.h"
 
+// Copyright (C) 1981 by Bell Laboratories, Inc., and Whitesmiths Ltd.
 // overstrike -- convert backspaces into multiple lines
 void overstrike()
 {

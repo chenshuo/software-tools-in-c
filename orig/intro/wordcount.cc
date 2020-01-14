@@ -1,6 +1,7 @@
 #include "../p2c.h"
 #include "intro.h"
 
+// Copyright (C) 1981 by Bell Laboratories, Inc., and Whitesmiths Ltd.
 // wordcount -- count words in standard input
 void wordcount()
 {

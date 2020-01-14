@@ -31,8 +31,7 @@ def unpack(archive):
 
 
 if len(sys.argv) > 1:
-    if sys.argv[1] == '-':
-        unpack(sys.stdin)
-    else:
-        with open(sys.argv[1]) as archive:
-            unpack(archive)
+    with open(sys.argv[1]) as archive:
+        unpack(archive)
+else:
+    unpack(sys.stdin)

@@ -1,6 +1,7 @@
 #include "../p2c.h"
 #include "filters.h"
 
+// Copyright (C) 1981 by Bell Laboratories, Inc., and Whitesmiths Ltd.
 // echo -- echo command line arguments to output
 void echo()
 {
