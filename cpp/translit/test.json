@@ -1,0 +1,67 @@
+[
+  {
+    "bin": "translit",
+    "args": ["abc", "ABC"],
+    "tests": [
+      ["123abcdef789", "123ABCdef789"],
+      ["", ""]
+    ]
+  },
+  {
+    "bin": "translit",
+    "args": ["a-z", "A-Z"],
+    "tests": [
+      ["123abcdef789", "123ABCDEF789"],
+      ["", ""]
+    ]
+  },
+  {
+    "bin": "translit",
+    "args": ["a-z", "b-za"],
+    "tests": [
+      ["123abcdefxyz789", "123bcdefgyza789"],
+      ["", ""]
+    ]
+  },
+  {
+    "bin": "translit",
+    "args": ["a-z", "A"],
+    "tests": [
+      ["123abcdef789", "123A789"],
+      ["", ""]
+    ]
+  },
+  {
+    "bin": "translit",
+    "args": ["a-z", ""],
+    "tests": [
+      ["123abcdef789", "123789"],
+      ["", ""]
+    ]
+  },
+  {
+    "bin": "translit",
+    "args": ["^a-z", "-"],
+    "tests": [
+      ["123abcdef789", "-abcdef-"],
+      ["", ""]
+    ]
+  },
+  {
+    "bin": "translit",
+    "args": ["^a-z", ""],
+    "tests": [
+      ["123abcdef789", "abcdef"],
+      ["", ""]
+    ]
+  },
+  {
+    "bin": "translit",
+    "args": [" @t@n", "@n"],
+    "tests": [
+      ["123   abc\t\n\tdef\n\t  789", "123\nabc\ndef\n789"],
+      ["", ""]
+    ]
+  }
+]
+

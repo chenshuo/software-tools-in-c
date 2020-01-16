@@ -4,7 +4,9 @@ CXX?=g++
 JAR=/usr/lib/jvm/default-java/bin/jar
 JAVA=/usr/lib/jvm/default-java/bin/java
 JAVAC=/usr/lib/jvm/default-java/bin/javac
-ARGS?=$(wildcard orig/intro/*.p) $(wildcard orig/filters/*.p) $(wildcard orig/translit/*.p)
+ARGS?=$(wildcard orig/intro/*.p) \
+      $(wildcard orig/filters/*.p) \
+      $(wildcard orig/translit/*.p)
 
 SRCS=$(wildcard cpp/*/*.cc)
 BINS=$(patsubst cpp/%,bin/%,$(basename $(SRCS))) \

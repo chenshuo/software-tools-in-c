@@ -2,14 +2,16 @@
 
 import glob, json, os, subprocess, sys
 
-def run_one(path, binary, test):
+def run_one(args, test):
     stdin = test[0].encode()
     output = test[1].encode()
-    result = subprocess.run(os.path.join(path, binary), input=stdin, capture_output=True)
-    if (result.stdout != output):
+    result = subprocess.run(args, input=stdin, capture_output=True)
+    if result.stdout != output:
         print("  Input: ", stdin)
         print("  Expect:", output)
         print("  Got:   ", result.stdout)
+    if result.stderr:
+        print("  stderr:", result.stderr)
 
 
 def run(filename):
@@ -20,9 +22,10 @@ def run(filename):
         suite = json.load(f)
         for test in suite:
             binary = test['bin']
-            print(" ", binary, len(test['tests']))
+            args = test.get('args', [])
+            print(" ", binary, args, len(test['tests']))
             for t in test['tests']:
-                run_one(path, binary, t)
+                run_one([os.path.join(path, binary)] + args, t)
         
 
 if __name__ == '__main__':
