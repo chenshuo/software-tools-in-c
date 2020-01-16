@@ -56,6 +56,7 @@ end;
 Converted literally to C++ in `orig/intro/wordcount.cc`:
 
 ```c++
+// Copyright (C) 1981 by Bell Laboratories, Inc., and Whitesmiths Ltd.
 #include "../p2c.h"
 #include "intro.h"
 
@@ -110,4 +111,5 @@ int main()
 2. The following directories has been made working:
     * `intro/` from Chapter 1, mostly rewritten.
     * `filters/` from Chapter 2, only rewrote `echo`.
+    * `translit/` from Chapter 2, with original code.
 
