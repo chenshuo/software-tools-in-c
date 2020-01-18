@@ -49,7 +49,7 @@ integer length(string& s);
 // index -- find position of character c in string s
 integer index(string& s, character c);
 
-void error(const char* message);
+void error(const char* message) __attribute__ ((noreturn));
 
 //
 // Util functions
