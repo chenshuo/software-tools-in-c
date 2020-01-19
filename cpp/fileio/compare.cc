@@ -1,20 +1,7 @@
+#include "../lib.h"
 #include <stdlib.h>
-
 #include <fstream>
 #include <string>
-
-void error(const char* message) __attribute__ ((noreturn));
-void error(const char* message)
-{
-  fprintf(stderr, "%s\n", message);
-  exit(EXIT_FAILURE);
-}
-
-void error_open(const char* filename)
-{
-  fprintf(stderr, "%s", filename);
-  error(": can't open file");
-}
 
 void diffmsg(int lineno, const std::string& line1, const std::string& line2)
 {

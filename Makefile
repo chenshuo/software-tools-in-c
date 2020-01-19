@@ -14,7 +14,8 @@ BINS=$(patsubst cpp/%,bin/%,$(basename $(SRCS))) \
      bin/filters/overstrike \
      bin/filters/compress \
      bin/filters/expand \
-     bin/translit/translit
+     bin/translit/translit \
+     bin/fileio/include
 
 all: $(BINS)
 
@@ -35,7 +36,7 @@ convert: bin/p2c.jar
 
 bin/% : cpp/%.cc
 	@mkdir -p $(dir $@)
-	$(CXX) -O2 -g -Wall -Wextra $^ -o $@
+	$(CXX) -O2 -g -Wall -Wextra $^ cpp/lib.cc -o $@
 
 bin/filters/overstrike: orig/filters/overstrike.cc orig/lib.cc orig/util/max.cc
 	$(CXX) -O2 -g -Wall -Wextra $^ -o $@ -DMAIN=$(notdir $@)
