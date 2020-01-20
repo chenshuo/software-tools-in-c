@@ -1,3 +1,5 @@
+// compare -- compare two files for equality
+
 #include "../lib.h"
 #include <stdlib.h>
 #include <fstream>
