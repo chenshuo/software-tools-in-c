@@ -112,4 +112,5 @@ int main()
     * `intro/` from Chapter 1, mostly rewritten.
     * `filters/` from Chapter 2, only rewrote `echo`.
     * `translit/` from Chapter 2, with original code.
+    * `fileio/` from Chapter 3, all rewritten.
 
